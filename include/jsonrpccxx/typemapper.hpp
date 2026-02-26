@@ -3,7 +3,8 @@
 #include "common.hpp"
 #include "nlohmann/json.hpp"
 #include <functional>
-#include <limits>
+#include <climits>
+#include <cstddef>
 #include <utility>
 #include <vector>
 
@@ -63,12 +64,12 @@ namespace jsonrpccxx {
   }
 
   template <typename T>
-  inline void check_param_type(size_t index, const json &x, json::value_t expectedType, typename std::enable_if<std::is_arithmetic<T>::value>::type * = 0) {
+  inline void check_param_type(std::size_t index, const json &x, json::value_t expectedType, typename std::enable_if<std::is_arithmetic<T>::value>::type * = 0) {
     if (expectedType == json::value_t::number_unsigned && x.type() == json::value_t::number_integer) {
       if (x.get<long long int>() < 0)
         throw JsonRpcException(invalid_params, "invalid parameter: must be " + type_name(expectedType) + ", but is " + type_name(x.type()), index);
     } else if (x.type() == json::value_t::number_unsigned && expectedType == json::value_t::number_integer) {
-      if (x.get<long long unsigned>() > (long long unsigned)std::numeric_limits<T>::max()) {
+      if (x.get<long long unsigned>() > static_cast<long long unsigned>((std::numeric_limits<T>::max)())) {
         throw JsonRpcException(invalid_params, "invalid parameter: exceeds value range of " + type_name(expectedType), index);
       }
     }
@@ -82,7 +83,7 @@ namespace jsonrpccxx {
   }
 
   template <typename T>
-  inline void check_param_type(size_t index, const json &x, json::value_t expectedType, typename std::enable_if<!std::is_arithmetic<T>::value>::type * = 0) {
+  inline void check_param_type(std::size_t index, const json &x, json::value_t expectedType, typename std::enable_if<!std::is_arithmetic<T>::value>::type * = 0) {
     if (x.type() != expectedType) {
       throw JsonRpcException(invalid_params, "invalid parameter: must be " + type_name(expectedType) + ", but is " + type_name(x.type()), index);
     }
