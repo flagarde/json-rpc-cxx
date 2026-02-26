@@ -8,6 +8,7 @@ option(CODE_COVERAGE "Enable coverage reporting" OFF)
 
 include(GNUInstallDirs)
 
+if(NOT TARGET nlohmann_json::nlohmann_json)
 find_package(nlohmann_json CONFIG QUIET)
 if(NOT nlohmann_json_FOUND)
   include(FetchContent)
@@ -19,6 +20,7 @@ if(NOT nlohmann_json_FOUND)
   endif()
   FetchContent_Declare(nlohmann_json GIT_REPOSITORY "${NLOHMANN_JSON_URL}" GIT_TAG "v${NLOHMANN_JSON_VERSION}")
   FetchContent_MakeAvailable(nlohmann_json)
+endif()
 endif()
 
 
