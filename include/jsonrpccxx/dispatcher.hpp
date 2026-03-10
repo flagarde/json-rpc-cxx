@@ -1,6 +1,5 @@
 #pragma once
 
-#include "jsonrpccxx/common.hpp"
 #include "jsonrpccxx/typemapper.hpp"
 #include <unordered_map>
 #include <string>
