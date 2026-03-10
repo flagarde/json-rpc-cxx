@@ -70,7 +70,7 @@ public:
       {
         return response[results[id]]["result"].get<T>();
       }
-      catch(json::type_error &e)
+      catch(const json::type_error &e)
       {
         throw JsonRpcException(parse_error, "invalid return type: " + std::string(e.what()));
       }
@@ -105,7 +105,7 @@ public:
       if(!response.is_array()) throw JsonRpcException(parse_error, std::string("invalid JSON response from server: expected array"));
       return BatchResponse(std::move(response));
     }
-    catch(json::parse_error &e)
+    catch(const json::parse_error &e)
     {
       throw JsonRpcException(parse_error, std::string("invalid JSON response from server: ") + e.what());
     }

@@ -2,106 +2,151 @@
 
 #include "jsonrpccxx/common.hpp"
 #include "jsonrpccxx/typemapper.hpp"
-#include <map>
+#include <unordered_map>
 #include <string>
+#include <vector>
 
 namespace jsonrpccxx
 {
 
 using NamedParamMapping = std::vector<std::string>;
   
+class Dispatcher
+{
+public:
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
+  explicit Dispatcher() = default;
+#pragma GCC diagnostic pop
+  ~Dispatcher() noexcept = default;
 
-  class Dispatcher {
-  public:
-    Dispatcher() :
-      methods(),
-      notifications(),
-      mapping() {}
+  bool Add(const std::string &name, MethodHandle callback, const NamedParamMapping &mapping = {})
+  {
+    if(contains(name)) return false;
+    methods[name] = std::move(callback);
+    if(!mapping.empty()) this->mapping[name] = mapping;
+    return true;
+  }
 
-    bool Add(const std::string &name, MethodHandle callback, const NamedParamMapping &mapping = {}) {
-      if (contains(name))
-        return false;
-      methods[name] = std::move(callback);
-      if (!mapping.empty()) {
-        this->mapping[name] = mapping;
-      }
-      return true;
+  bool Add(const std::string &name, NotificationHandle callback, const NamedParamMapping &mapping = {})
+  {
+    if(contains(name)) return false;
+    notifications[name] = std::move(callback);
+    if(!mapping.empty()) this->mapping[name] = mapping;
+    return true;
+  }
+
+  JsonRpcException process_type_error(const std::string& name,const JsonRpcException &e) const
+  {
+    if(e.Code() == invalid_params && !e.Data().empty())
+    {
+      std::string message = e.Message() + " for parameter ";
+      const auto found = mapping.find(name);
+      if(found != mapping.end()) message += "\"" + found->second[e.Data().get<std::size_t>()] + "\"";
+      else message += std::to_string(e.Data().get<unsigned int>());
+      return JsonRpcException(e.Code(), message);
     }
+    else return e;
+  }
 
-    bool Add(const std::string &name, NotificationHandle callback, const NamedParamMapping &mapping = {}) {
-      if (contains(name))
-        return false;
-      notifications[name] = std::move(callback);
-      if (!mapping.empty()) {
-        this->mapping[name] = mapping;
-      }
-      return true;
+  json InvokeMethod(const std::string &name, const json &params) const
+  {
+    auto method = methods.find(name);
+    if(method == methods.end()) throw JsonRpcException(method_not_found, "method not found: " + name);
+    try
+    {
+      return method->second(normalize_parameter(name, params));
     }
+    catch(const json::type_error &e)
+    {
+      throw JsonRpcException(invalid_params, "invalid parameter: " + std::string(e.what()));
+    }
+    catch(const JsonRpcException &e)
+    {
+      throw process_type_error(name, e);
+    }
+  }
 
-    JsonRpcException process_type_error(const std::string &name, JsonRpcException &e) {
-      if (e.Code() == -32602 && !e.Data().empty()) {
-        std::string message = e.Message() + " for parameter ";
-        if (this->mapping.find(name) != this->mapping.end()) {
-          message += "\"" + mapping[name][e.Data().get<unsigned int>()] + "\"";
-        } else {
-          message += std::to_string(e.Data().get<unsigned int>());
+  void InvokeNotification(const std::string &name, const json &params) const
+  {
+    auto notification = notifications.find(name);
+    if(notification == notifications.end()) throw JsonRpcException(method_not_found, "notification not found: " + name);
+    try
+    {
+      notification->second(normalize_parameter(name, params));
+    }
+    catch(const JsonRpcException &e)
+    {
+      throw process_type_error(name, e);
+    }
+  }
+
+  inline bool contains(const std::string& name) const noexcept { return (methods.find(name) != methods.end() || notifications.find(name) != notifications.end()); }
+private:
+  std::unordered_map<std::string, MethodHandle> methods;
+  std::unordered_map<std::string, NotificationHandle> notifications;
+  std::unordered_map<std::string, NamedParamMapping> mapping;
+
+ /* inline json normalize_parameter(std::string_view name, const json &params) const
+  {
+    if(params.is_array()) return params; // already positional
+
+    if (params.is_object()) {
+        // single lookup in mapping
+        auto it = mapping.find(std::string(name)); // mapping still uses std::string keys
+        if (it == mapping.end()) {
+            throw JsonRpcException(
+                invalid_params,
+                "invalid parameter: procedure doesn't support named parameters"
+            );
         }
-        return JsonRpcException(e.Code(), message);
-      }
-      return e;
-    }
 
-    json InvokeMethod(const std::string &name, const json &params) {
-      auto method = methods.find(name);
-      if (method == methods.end()) {
-        throw JsonRpcException(method_not_found, "method not found: " + name);
-      }
-      try {
-        return method->second(normalize_parameter(name, params));
-      } catch (json::type_error &e) {
-        throw JsonRpcException(invalid_params, "invalid parameter: " + std::string(e.what()));
-      } catch (JsonRpcException &e) {
-        throw process_type_error(name, e);
-      }
-    }
+        const auto &expected_keys = it->second;
+        json result = json::array();
+        result.reserve(expected_keys.size());
 
-    void InvokeNotification(const std::string &name, const json &params) {
-      auto notification = notifications.find(name);
-      if (notification == notifications.end()) {
-        throw JsonRpcException(method_not_found, "notification not found: " + name);
-      }
-      try {
-        notification->second(normalize_parameter(name, params));
-      } catch (json::type_error &e) {
-        throw JsonRpcException(invalid_params, "invalid parameter: " + std::string(e.what()));
-      } catch (JsonRpcException &e) {
-        throw process_type_error(name, e);
-      }
-    }
+        for (const auto &key : expected_keys) {
+            // use find + iterator to avoid duplicate lookups
+            auto param_it = params.find(key);
+            if (param_it == params.end()) {
+                throw JsonRpcException(
+                    invalid_params,
+                    "invalid parameter: missing named parameter \"" + key + "\""
+                );
+            }
 
-  private:
-    std::map<std::string, MethodHandle> methods;
-    std::map<std::string, NotificationHandle> notifications;
-    std::map<std::string, NamedParamMapping> mapping;
-
-    inline bool contains(const std::string &name) { return (methods.find(name) != methods.end() || notifications.find(name) != notifications.end()); }
-    inline json normalize_parameter(const std::string &name, const json &params) {
-      if (params.type() == json::value_t::array) {
-        return params;
-      } else if (params.type() == json::value_t::object) {
-        if (mapping.find(name) == mapping.end()) {
-          throw JsonRpcException(invalid_params, "invalid parameter: procedure doesn't support named parameter");
+            // emplace the value (avoids unnecessary copy)
+            result.push_back(param_it.value());
         }
-        json result;
-        for (auto const &p : mapping[name]) {
-          if (params.find(p) == params.end()) {
-            throw JsonRpcException(invalid_params, "invalid parameter: missing named parameter \"" + p + "\"");
-          }
-          result.push_back(params[p]);
-        }
+
         return result;
-      }
-      throw JsonRpcException(invalid_request, "invalid request: params field must be an array, object");
     }
-  };
+
+    throw JsonRpcException(
+        invalid_request,
+        R"(invalid request: the "params" field must be either an array or an object.)"
+    );
+}*/
+
+
+  inline json normalize_parameter(const std::string &name, const json &params) const
+  {
+    if(params.is_array()) return params;
+    else if(params.is_object())
+    {
+      const auto found = mapping.find(name);
+      if(found == mapping.end()) throw JsonRpcException(invalid_params, "invalid parameter: procedure doesn't support named parameter");
+      json result;
+      for(auto const &p : found->second)
+      {
+        if(params.find(p) == params.end()) throw JsonRpcException(invalid_params, "invalid parameter: missing named parameter \"" + p + "\"");
+        result.push_back(params[p]);
+      }
+      return result;
+    }
+    throw JsonRpcException(invalid_request, R"(invalid request: the "params" field must be either an array or an object.)");
+  }
+
+};
+
 } // namespace jsonrpccxx

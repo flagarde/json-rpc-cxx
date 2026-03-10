@@ -40,7 +40,7 @@ namespace jsonrpccxx {
     }
 
     int Code() const { return code; }
-    const std::string &Message() const { return message; }
+    const std::string& Message() const { return message; }
     const json &Data() const { return data; }
 
     const char *what() const noexcept override { return err.c_str(); }

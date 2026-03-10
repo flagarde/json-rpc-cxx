@@ -24,9 +24,9 @@ public:
   JsonRpcClient(IClientConnector &connector) : connector(connector) {}
   virtual ~JsonRpcClient() = default;
 
-  template <typename T> T CallMethod(const id_type &id, const std::string &name) { return call_method(id, name, json::object()).result.get<T>(); }
-  template <typename T> T CallMethod(const id_type &id, const std::string &name, const positional_parameter &params) { return call_method(id, name, params).result.get<T>(); }
-  template <typename T> T CallMethodNamed(const id_type &id, const std::string &name, const named_parameter &params = {}) { return call_method(id, name, params).result.get<T>(); }
+  template <typename T = json> T CallMethod(const id_type &id, const std::string &name) { return call_method(id, name, json::object()).result.get<T>(); }
+  template <typename T = json> T CallMethod(const id_type &id, const std::string &name, const positional_parameter &params) { return call_method(id, name, params).result.get<T>(); }
+  template <typename T = json> T CallMethodNamed(const id_type &id, const std::string &name, const named_parameter &params = {}) { return call_method(id, name, params).result.get<T>(); }
 
   void CallNotification(const std::string &name, const positional_parameter &params = {}) { call_notification(name, params); }
   void CallNotificationNamed(const std::string &name, const named_parameter &params = {}) { call_notification(name, params); }
@@ -35,7 +35,7 @@ protected:
   IClientConnector &connector;
 
 private:
-  JsonRpcResponse call_method(const id_type &id, const std::string &name, const json &params)
+  JsonRpcResponse call_method(const id_type &id, const std::string &name, const json &params) const
   {
     json j = {{"method", name}, {"jsonrpc", "2.0"}};
     if(std::get_if<int>(&id) != nullptr) j["id"] = std::get<int>(id);
@@ -59,7 +59,7 @@ private:
       }
       throw JsonRpcException(internal_error, R"(invalid server response: neither "result" nor "error" fields found)");
     }
-    catch(json::parse_error &e)
+    catch(const json::parse_error &e)
     {
       throw JsonRpcException(parse_error, std::string("invalid JSON response from server: ") + e.what());
     }
@@ -67,9 +67,9 @@ private:
 
   void call_notification(const std::string &name, const nlohmann::json &params)
   {
-    nlohmann::json j = {{"method", name}};
-    j["jsonrpc"] = "2.0";
+    nlohmann::json j = {{"method", name}, {"jsonrpc","2.0"}};
     if(!params.empty() && !params.is_null()) j["params"] = params;
+    else if(params.is_array()) j["params"] = params;
     connector.Send(j.dump());
   }
 };
