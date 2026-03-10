@@ -6,6 +6,7 @@ namespace jsonrpccxx
   class IClientConnector
   {
   public:
+    explicit IClientConnector() = default;
     virtual ~IClientConnector() noexcept = default;
     virtual std::string Send(const std::string &request) = 0;
   };

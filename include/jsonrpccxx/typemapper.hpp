@@ -19,6 +19,12 @@ namespace jsonrpccxx {
   constexpr json::value_t GetType(type<std::vector<T>>) {
     return json::value_t::array;
   }
+
+  template <typename T, std::size_t N>
+  constexpr json::value_t GetType(type<std::array<T, N>>) {
+    return json::value_t::array;
+  }
+
   template <typename T>
   constexpr json::value_t GetType(type<T>) {
     if (std::is_enum<T>::value) {

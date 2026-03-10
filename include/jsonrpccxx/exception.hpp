@@ -36,7 +36,7 @@ namespace jsonrpccxx {
     const std::string& Message() const { return message; }
     const json &Data() const { return data; }
 
-    const char *what() const noexcept override { return err.c_str(); }
+    const char* what() const noexcept override { return err.c_str(); }
 
     static inline JsonRpcException fromJson(const nlohmann::json &value)
     {
