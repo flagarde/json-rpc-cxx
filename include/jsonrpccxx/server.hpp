@@ -4,34 +4,32 @@
 #include "jsonrpccxx/dispatcher.hpp"
 #include <string>
 
-namespace jsonrpccxx {
-  class JsonRpcServer {
-  public:
-    JsonRpcServer() : dispatcher() {}
-    virtual ~JsonRpcServer() = default;
-    virtual std::string HandleRequest(const std::string &request) = 0;
+namespace jsonrpccxx
+{
 
-    bool Add(const std::string &name, MethodHandle callback, const NamedParamMapping &mapping = NAMED_PARAM_MAPPING) {
+class JsonRpcServer
+{
+public:
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
+  explicit JsonRpcServer() = default;
+#pragma GCC diagnostic pop
+  ~JsonRpcServer() noexcept = default;
+
+    bool Add(const std::string &name, MethodHandle callback, const NamedParamMapping &mapping = {}) {
       if (name.rfind("rpc.", 0) == 0)
         return false;
-      return dispatcher.Add(name, callback, mapping);
+      return m_dispatcher.Add(name, callback, mapping);
     }
-    bool Add(const std::string &name, NotificationHandle callback, const NamedParamMapping &mapping = NAMED_PARAM_MAPPING) {
+    bool Add(const std::string &name, NotificationHandle callback, const NamedParamMapping &mapping = {}) {
       if (name.rfind("rpc.", 0) == 0)
         return false;
-      return dispatcher.Add(name, callback, mapping);
+      return m_dispatcher.Add(name, callback, mapping);
     }
 
-  protected:
-    Dispatcher dispatcher;
-  };
 
-  class JsonRpc2Server : public JsonRpcServer {
-  public:
-    JsonRpc2Server() = default;
-    ~JsonRpc2Server() override = default;
-
-    std::string HandleRequest(const std::string &requestString) override {
+    std::string HandleRequest(const std::string &requestString)
+    {
       try {
         json request = json::parse(requestString);
         if (request.is_array()) {
@@ -57,7 +55,8 @@ namespace jsonrpccxx {
         return json{{"id", nullptr}, {"error", {{"code", parse_error}, {"message", std::string("parse error: ") + e.what()}}}, {"jsonrpc", "2.0"}}.dump();
       }
     }
-
+    protected:
+    Dispatcher m_dispatcher;
   private:
     json HandleSingleRequest(json &request) {
       json id = nullptr;
@@ -97,13 +96,13 @@ namespace jsonrpccxx {
       }
       if (!has_key(request, "id")) {
         try {
-          dispatcher.InvokeNotification(request["method"], request["params"]);
+          m_dispatcher.InvokeNotification(request["method"], request["params"]);
           return json();
         } catch (std::exception &) {
           return json();
         }
       } else {
-        return {{"jsonrpc", "2.0"}, {"id", request["id"]}, {"result", dispatcher.InvokeMethod(request["method"], request["params"])}};
+        return {{"jsonrpc", "2.0"}, {"id", request["id"]}, {"result", m_dispatcher.InvokeMethod(request["method"], request["params"])}};
       }
     }
   };

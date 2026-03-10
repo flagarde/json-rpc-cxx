@@ -7,7 +7,7 @@ using namespace jsonrpccxx;
 using namespace std;
 
 struct Server2 {
-  JsonRpc2Server server;
+  JsonRpcServer server;
   TestServerConnector connector;
 
   Server2() : server(), connector(server) {}

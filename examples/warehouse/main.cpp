@@ -46,7 +46,7 @@ void doWarehouseStuff(IClientConnector &clientConnector) {
 }
 
 int main() {
-  JsonRpc2Server rpcServer;
+  JsonRpcServer rpcServer;
 
   // Bindings
   WarehouseServer app;

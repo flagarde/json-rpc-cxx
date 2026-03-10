@@ -5,10 +5,11 @@
 #include <map>
 #include <string>
 
-namespace jsonrpccxx {
+namespace jsonrpccxx
+{
 
-  typedef std::vector<std::string> NamedParamMapping;
-  static NamedParamMapping NAMED_PARAM_MAPPING;
+using NamedParamMapping = std::vector<std::string>;
+  
 
   class Dispatcher {
   public:
@@ -17,7 +18,7 @@ namespace jsonrpccxx {
       notifications(),
       mapping() {}
 
-    bool Add(const std::string &name, MethodHandle callback, const NamedParamMapping &mapping = NAMED_PARAM_MAPPING) {
+    bool Add(const std::string &name, MethodHandle callback, const NamedParamMapping &mapping = {}) {
       if (contains(name))
         return false;
       methods[name] = std::move(callback);
@@ -27,7 +28,7 @@ namespace jsonrpccxx {
       return true;
     }
 
-    bool Add(const std::string &name, NotificationHandle callback, const NamedParamMapping &mapping = NAMED_PARAM_MAPPING) {
+    bool Add(const std::string &name, NotificationHandle callback, const NamedParamMapping &mapping = {}) {
       if (contains(name))
         return false;
       notifications[name] = std::move(callback);
