@@ -79,10 +79,10 @@ TEST_CASE_FIXTURE(F, "method_result_array") {
 
 TEST_CASE_FIXTURE(F, "method_result_empty") {
   c.raw_response = "{}";
-  REQUIRE_THROWS_WITH(client.CallMethod<json>("1", "some.method_1", {}), "-32603: invalid server response: neither \"result\" nor \"error\" fields found");
+  REQUIRE_THROWS_WITH(client.CallMethod<json>("1", "some.method_1", {}), "-32603: The 'jsonrpc' key is either missing or its value is invalid (expected '2.0').");
   c.VerifyMethodRequest("some.method_1", "1");
   c.raw_response = "[]";
-  REQUIRE_THROWS_WITH(client.CallMethod<json>("1", "some.method_1", {}), "-32603: invalid server response: neither \"result\" nor \"error\" fields found");
+  REQUIRE_THROWS_WITH(client.CallMethod<json>("1", "some.method_1", {}), "-32603: The 'jsonrpc' key is either missing or its value is invalid (expected '2.0').");
   c.VerifyMethodRequest("some.method_1", "1");
 }
 

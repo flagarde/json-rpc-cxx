@@ -37,21 +37,24 @@ protected:
 private:
   JsonRpcResponse call_method(const id_type &id, const std::string &name, const json &params)
   {
-    json j = {{"method", name}};
+    json j = {{"method", name}, {"jsonrpc", "2.0"}};
     if(std::get_if<int>(&id) != nullptr) j["id"] = std::get<int>(id);
     else j["id"] = std::get<std::string>(id);
-    j["jsonrpc"] = "2.0";
     if(!params.empty() && !params.is_null()) j["params"] = params;
     else if(params.is_array()) j["params"] = params;
     try
     {
       json response = json::parse(connector.Send(j.dump()));
-      if(has_key_type(response, "error", json::value_t::object)) throw JsonRpcException::fromJson(response["error"]);
-      else if(has_key_type(response, "error", json::value_t::string)) throw JsonRpcException(internal_error, response["error"]);
+      if(!response.contains("jsonrpc") || !response["jsonrpc"].is_string() || response["jsonrpc"] != "2.0" ) throw JsonRpcException(internal_error, "The 'jsonrpc' key is either missing or its value is invalid (expected '2.0').");
+      if(!response.contains("id") || !( response["id"].is_null() || response["id"].is_string() || response["id"].is_number_integer())) throw JsonRpcException(internal_error, "The 'id' key is either missing or its type is invalid (expected 'null', 'string', 'integer').");
+      if(response.contains("error") && response.contains("result")) throw JsonRpcException(internal_error, "'error' and 'result' keys cannot both be present.");
+
+      if(response.contains("error") && response["error"].is_object()) throw JsonRpcException::fromJson(response["error"]);
+      else if(response.contains("error") && response["error"].is_string()) throw JsonRpcException(internal_error, response["error"]);
       
-      if(has_key(response, "result") && has_key(response, "id")) 
+      if(response.contains("result")) 
       {
-        if(response["id"].type() == json::value_t::string) return JsonRpcResponse{response["id"].get<std::string>(), response["result"].get<json>()};
+        if(response["id"].is_string()) return JsonRpcResponse{response["id"].get<std::string>(), response["result"].get<json>()};
         else return JsonRpcResponse{response["id"].get<int>(), response["result"].get<json>()};
       }
       throw JsonRpcException(internal_error, R"(invalid server response: neither "result" nor "error" fields found)");
