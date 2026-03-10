@@ -7,6 +7,5 @@ namespace jsonrpccxx {
   static inline bool valid_id(const json &request) {
     return request.contains("id") && (request["id"].is_number() || request["id"].is_string() || request["id"].is_null());
   }
-  static inline bool valid_id_not_null(const json &request) { return request.contains("id") && (request["id"].is_number() || request["id"].is_string()); }
 
 } // namespace jsonrpccxx

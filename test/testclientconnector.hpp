@@ -1,6 +1,5 @@
 #pragma once
 #include "doctest/doctest.h"
-#include <jsonrpccxx/common.hpp>
 #include <jsonrpccxx/client.hpp>
 #include <jsonrpccxx/exception.hpp>
 #include <jsonrpccxx/iclientconnector.hpp>

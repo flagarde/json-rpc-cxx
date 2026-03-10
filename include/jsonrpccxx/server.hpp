@@ -1,6 +1,5 @@
 #pragma once
 
-#include "jsonrpccxx/common.hpp"
 #include "jsonrpccxx/dispatcher.hpp"
 #include <string>
 
@@ -63,7 +62,7 @@ private:
   json HandleSingleRequest( json &request)
   {
     json id = nullptr;
-      if (valid_id(request)) {
+      if (request.contains("id") && (request["id"].is_number() || request["id"].is_string() || request["id"].is_null())) {
         id = request["id"];
       }
       try {
@@ -89,7 +88,7 @@ private:
       if (!request.contains("method") || !request["method"].is_string()) {
         throw JsonRpcException(invalid_request, "invalid request: method field must be a string");
       }
-      if ( request.contains("id") && !valid_id(request)) {
+      if ( request.contains("id") && !(request.contains("id") && (request["id"].is_number() || request["id"].is_string() || request["id"].is_null()))) {
         throw JsonRpcException(invalid_request, "invalid request: id field must be a number, string or null");
       }
       if ( request.contains("params") && !(request["params"].is_array() || request["params"].is_object() || request["params"].is_null())) {

@@ -55,8 +55,8 @@ public:
   {
     for(auto &[key, value] : response.items())
     {
-      if(value.is_object() && valid_id_not_null(value) && value.contains("result")) results[value["id"]] = std::stoi(key);
-      else if (value.is_object() && valid_id_not_null(value) && value.contains("error")) errors[value["id"]] = std::stoi(key);
+      if(value.is_object() && value.contains("id") && (value["id"].is_number() || value["id"].is_string()) && value.contains("result")) results[value["id"]] = std::stoi(key);
+      else if (value.is_object() && value.contains("id") && (value["id"].is_number() || value["id"].is_string()) && value.contains("error")) errors[value["id"]] = std::stoi(key);
       else nullIds.push_back(std::stoi(key));
     }
   }
