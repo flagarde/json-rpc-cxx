@@ -48,10 +48,10 @@ public:
         REQUIRE(!result.contains("result"));
         REQUIRE(result["jsonrpc"] == "2.0");
         REQUIRE(result["id"] == id);
-        REQUIRE(has_key_type(result, "error", json::value_t::object));
-        REQUIRE(has_key_type(result["error"], "code", json::value_t::number_integer));
+        REQUIRE((result.contains("error") && result["error"].is_object()));
+        REQUIRE((result["error"].contains("code") && result["error"]["code"].is_number_integer()));
         REQUIRE(result["error"]["code"] == code);
-        REQUIRE(has_key_type(result["error"], "message", json::value_t::string));
+        REQUIRE((result["error"].contains("message") && result["error"]["message"].is_string()));
         REQUIRE(result["error"]["message"].get<std::string>().find(message) != std::string::npos);
 
         return result["error"];

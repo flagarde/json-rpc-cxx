@@ -83,10 +83,10 @@ private:
 
   json ProcessSingleRequest( json &request)
   {
-      if (!has_key_type(request, "jsonrpc", json::value_t::string) || request["jsonrpc"] != "2.0") {
+      if (!request.contains("jsonrpc") || !request["jsonrpc"].is_string() || request["jsonrpc"] != "2.0") {
         throw JsonRpcException(invalid_request, R"(invalid request: missing jsonrpc field set to "2.0")");
       }
-      if (!has_key_type(request, "method", json::value_t::string)) {
+      if (!request.contains("method") || !request["method"].is_string()) {
         throw JsonRpcException(invalid_request, "invalid request: method field must be a string");
       }
       if ( request.contains("id") && !valid_id(request)) {
@@ -95,7 +95,7 @@ private:
       if ( request.contains("params") && !(request["params"].is_array() || request["params"].is_object() || request["params"].is_null())) {
         throw JsonRpcException(invalid_request, "invalid request: params field must be an array, object or null");
       }
-      if (! request.contains("params") || has_key_type(request, "params", json::value_t::null)) {
+      if (! request.contains("params") || request["params"].is_null()) {
         request["params"] = json::array();
       }
       if (!request.contains("id")) {
