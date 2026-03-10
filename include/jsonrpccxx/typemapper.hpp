@@ -1,6 +1,6 @@
 #pragma once
 
-#include "jsonrpccxx/common.hpp"
+#include "jsonrpccxx/exception.hpp"
 #include "nlohmann/json.hpp"
 #include <functional>
 #include <limits>

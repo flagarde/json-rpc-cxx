@@ -1,5 +1,5 @@
 #include "doctest/doctest.h"
-#include <jsonrpccxx/common.hpp>
+#include <jsonrpccxx/exception.hpp>
 
 using namespace std;
 using namespace jsonrpccxx;

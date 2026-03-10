@@ -1,6 +1,7 @@
 #pragma once
 #include "jsonrpccxx/common.hpp"
 #include "jsonrpccxx/iclientconnector.hpp"
+#include "jsonrpccxx/exception.hpp"
 #include <nlohmann/json.hpp>
 #include <string>
 #include <variant>

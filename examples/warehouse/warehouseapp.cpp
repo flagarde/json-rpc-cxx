@@ -1,5 +1,5 @@
 #include "warehouseapp.hpp"
-#include <jsonrpccxx/common.hpp>
+#include <jsonrpccxx/exception.hpp>
 
 using namespace jsonrpccxx;
 
