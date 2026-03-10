@@ -22,10 +22,10 @@ public:
     }
 
     static json VerifyMethodResult(const json &id, json &result) {
-        REQUIRE(!has_key(result, "error"));
+        REQUIRE(!result.contains("error"));
         REQUIRE(result["jsonrpc"] == "2.0");
         REQUIRE(result["id"] == id);
-        REQUIRE(has_key(result, "result"));
+        REQUIRE(result.contains("result"));
         return result["result"];
     }
 
@@ -45,7 +45,7 @@ public:
     }
 
     static json VerifyMethodError(int code, const string &message, const json &id, json &result) {
-        REQUIRE(!has_key(result, "result"));
+        REQUIRE(!result.contains("result"));
         REQUIRE(result["jsonrpc"] == "2.0");
         REQUIRE(result["id"] == id);
         REQUIRE(has_key_type(result, "error", json::value_t::object));

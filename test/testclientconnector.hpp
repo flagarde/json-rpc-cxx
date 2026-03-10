@@ -54,6 +54,6 @@ public:
   void VerifyNotificationRequest(const string &name) {
     CHECK(request["method"] == name);
     CHECK(request["jsonrpc"] == "2.0");
-    CHECK(!has_key(request, "id"));
+    CHECK(!request.contains("id"));
   }
 };

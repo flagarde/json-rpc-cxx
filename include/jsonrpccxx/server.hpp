@@ -89,16 +89,16 @@ private:
       if (!has_key_type(request, "method", json::value_t::string)) {
         throw JsonRpcException(invalid_request, "invalid request: method field must be a string");
       }
-      if (has_key(request, "id") && !valid_id(request)) {
+      if ( request.contains("id") && !valid_id(request)) {
         throw JsonRpcException(invalid_request, "invalid request: id field must be a number, string or null");
       }
-      if (has_key(request, "params") && !(request["params"].is_array() || request["params"].is_object() || request["params"].is_null())) {
+      if ( request.contains("params") && !(request["params"].is_array() || request["params"].is_object() || request["params"].is_null())) {
         throw JsonRpcException(invalid_request, "invalid request: params field must be an array, object or null");
       }
-      if (!has_key(request, "params") || has_key_type(request, "params", json::value_t::null)) {
+      if (! request.contains("params") || has_key_type(request, "params", json::value_t::null)) {
         request["params"] = json::array();
       }
-      if (!has_key(request, "id")) {
+      if (!request.contains("id")) {
         try {
           m_dispatcher.InvokeNotification(request["method"], request["params"]);
           return json();
