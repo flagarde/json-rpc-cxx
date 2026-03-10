@@ -49,7 +49,9 @@ private:
 class BatchResponse
 {
 public:
-  explicit BatchResponse(json &&response) : response(response), results(), errors(), nullIds()
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
+  explicit BatchResponse(json &&response) : response(response)
   {
     for(auto &[key, value] : response.items())
     {
@@ -58,6 +60,7 @@ public:
       else nullIds.push_back(std::stoi(key));
     }
   }
+#pragma GCC diagnostic pop
 
   template<typename T> T Get(const json &id)
   {
