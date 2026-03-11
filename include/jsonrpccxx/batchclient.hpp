@@ -102,7 +102,7 @@ public:
     try
     {
       json response = json::parse(connector.Send(request.Build().dump()));
-      if(!response.is_array()) throw JsonRpcException(parse_error, std::string("invalid JSON response from server: expected array"));
+      if(!response.is_array()) throw JsonRpcException(parse_error, "invalid JSON response from server: expected array");
       return BatchResponse(std::move(response));
     }
     catch(const json::parse_error &e)

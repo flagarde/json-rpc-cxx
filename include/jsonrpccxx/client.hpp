@@ -59,7 +59,7 @@ private:
         if(response["id"].is_string()) return JsonRpcResponse{response["id"].get<std::string>(), response["result"].get<json>()};
         else return JsonRpcResponse{response["id"].get<int>(), response["result"].get<json>()};
       }
-      throw JsonRpcException(internal_error, R"(invalid server response: neither "result" nor "error" fields found)");
+      throw JsonRpcException(internal_error, "invalid server response: neither 'result' nor 'error' fields found");
     }
     catch(const json::parse_error &e)
     {

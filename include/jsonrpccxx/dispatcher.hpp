@@ -101,7 +101,7 @@ private:
       }
       return result;
     }
-    throw JsonRpcException(invalid_request, R"(invalid request: the "params" field must be either an array or an object.)");
+    throw JsonRpcException(invalid_request, "invalid request: the 'params' field must be either an array or an object.");
   }
 
 };
