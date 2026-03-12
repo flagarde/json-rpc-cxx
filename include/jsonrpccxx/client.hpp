@@ -5,14 +5,13 @@
 #include <cstdint>
 #include <nlohmann/json.hpp>
 #include <string>
-#include <variant>
 
 namespace jsonrpccxx
 {
 
 typedef std::vector<json> positional_parameter;
 typedef std::map<std::string, json> named_parameter;
-typedef std::variant<std::int64_t, std::string> id_type;
+
 
 struct JsonRpcResponse
 {
@@ -46,7 +45,7 @@ private:
     else if(params.is_array()) j["params"] = params;
     try
     {
-      json response = json::parse(connector.Send(j.dump()));
+      json response = json::parse(connector.SendRequest(j.dump()));
       if(!response.contains("jsonrpc") || !response["jsonrpc"].is_string() || response["jsonrpc"] != "2.0" ) throw JsonRpcException(internal_error, "The 'jsonrpc' key is either missing or its value is invalid (expected '2.0').");
       if(!response.contains("id") || !( response["id"].is_null() || response["id"].is_string() || response["id"].is_number_integer())) throw JsonRpcException(internal_error, "The 'id' key is either missing or its type is invalid (expected 'null', 'string', 'integer').");
       if(response.contains("error") && response.contains("result")) throw JsonRpcException(internal_error, "'error' and 'result' keys cannot both be present.");
@@ -72,7 +71,7 @@ private:
     nlohmann::json j = {{"method", name}, {"jsonrpc","2.0"}};
     if(!params.empty() && !params.is_null()) j["params"] = params;
     else if(params.is_array()) j["params"] = params;
-    connector.Send(j.dump());
+    connector.SendRequest(j.dump());
   }
 };
 

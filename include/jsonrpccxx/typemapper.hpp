@@ -8,8 +8,8 @@
 #include <vector>
 
 namespace jsonrpccxx {
-  typedef std::function<json(const json &)> MethodHandle;
-  typedef std::function<void(const json &)> NotificationHandle;
+  typedef std::function<json(const nlohmann::json &)> MethodHandle;
+  typedef std::function<void(const nlohmann::json &)> NotificationHandle;
 
   // Workaround due to forbidden partial template function specialisation
   template <typename T>

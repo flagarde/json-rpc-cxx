@@ -8,14 +8,16 @@
 
 using namespace jsonrpccxx;
 
-class TestClientConnector : public IClientConnector {
+class TestClientConnector : public jsonrpccxx::ISyncClientConnector {
 public:
-  TestClientConnector() : request(), raw_response() {}
-
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
+  explicit TestClientConnector() noexcept = default;
+#pragma GCC diagnostic push
   json request;
   std::string raw_response;
 
-  std::string Send(const std::string &r) override {
+  std::string SendAndReceive(const std::string_view r) override {
     this->request = json::parse(r);
     return raw_response;
   }

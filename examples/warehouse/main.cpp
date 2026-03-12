@@ -1,5 +1,6 @@
 #include "inmemoryconnector.hpp"
 #include "cpphttplibconnector.hpp"
+#include "websocketconnector.hpp"
 #include "warehouseapp.hpp"
 
 #include <iostream>
@@ -10,16 +11,25 @@
 using namespace jsonrpccxx;
 using namespace std;
 
-class WareHouseClient {
+class WareHouseClient
+{
 public:
   explicit WareHouseClient(JsonRpcClient &client) : client(client) {}
   bool AddProduct(const Product &p) { return client.CallMethod<bool>(1, "AddProduct", {p}); }
-  Product GetProduct(const std::string &id) { return client.CallMethod<Product>(1, "GetProduct", {id}); }
-  vector<Product> AllProducts() { return client.CallMethod<vector<Product>>(1, "AllProducts", {}); }
+
+  void NotifySum(const int a, const int b) {  client.CallNotification("Notify", {a,b});}
+  Product GetProduct(const std::string &id) { return client.CallMethod<Product>(5, "GetProduct", {id}); }
+  vector<Product> AllProducts() { return client.CallMethod<vector<Product>>(7, "AllProducts", {}); }
 
 private:
-  JsonRpcClient &client;
+  JsonRpcClient& client;
 };
+
+void doWarehouseStuff2(IClientConnector &clientConnector) {
+  JsonRpcClient client2(clientConnector);
+  WareHouseClient appClient2(client2);
+  appClient2.NotifySum(41,1);
+}
 
 void doWarehouseStuff(IClientConnector &clientConnector) {
   JsonRpcClient client(clientConnector);
@@ -31,6 +41,14 @@ void doWarehouseStuff(IClientConnector &clientConnector) {
   p.cat = category::cash_carry;
   cout << "Adding product: " << std::boolalpha << appClient.AddProduct(p) << "\n";
 
+
+  Product g;
+  p.id = "0x2f";
+  p.price = 88.4;
+  p.name = "MyProduct";
+  p.cat = category::cash_carry;
+  cout << "Adding product: " << std::boolalpha << appClient.AddProduct(p) << "\n";
+
   Product p2 = appClient.GetProduct("0xff");
   cout << "Found product: " << p2.name << "\n";
   try {
@@ -39,13 +57,22 @@ void doWarehouseStuff(IClientConnector &clientConnector) {
     cerr << "Error finding product: " << e.what() << "\n";
   }
 
-  auto all = appClient.AllProducts();
+  try {
+  Product p3 = appClient.GetProduct("0x2f");
+  cout << "Found product: " << p3.name << " at price : "<< p3.price << "\n";
+} catch (const JsonRpcException &e) {
+  cerr << "Error finding product: " << e.what() << "\n";
+}
+
+
+ auto all = appClient.AllProducts();
   for (const auto &p: all) {
     cout << p.name << endl;
   }
 }
 
-int main() {
+int main()
+{
   JsonRpcServer rpcServer;
 
   // Bindings
@@ -53,10 +80,11 @@ int main() {
   rpcServer.Add("GetProduct", GetHandle(&WarehouseServer::GetProduct, app), {"id"});
   rpcServer.Add("AddProduct", GetHandle(&WarehouseServer::AddProduct, app), {"product"});
   rpcServer.Add("AllProducts", GetHandle(&WarehouseServer::AllProducts, app), {});
+  rpcServer.Add("Notify", GetHandle(&WarehouseServer::Notify, app), {"a","b"});
 
-  cout << "Running in-memory example" << "\n";
+  /*cout << "Running in-memory example" << "\n";
   InMemoryConnector inMemoryConnector(rpcServer);
-  doWarehouseStuff(inMemoryConnector);
+  doWarehouseStuff(inMemoryConnector);*/
 
   cout << "Running http example" << "\n";
   CppHttpLibServerConnector httpServer(rpcServer, 8484);
@@ -64,6 +92,15 @@ int main() {
   CppHttpLibClientConnector httpClient("localhost", 8484);
   std::this_thread::sleep_for(0.5s);
   doWarehouseStuff(httpClient);
+
+  /*cout << "Running websocket example" << "\n";
+  WebsocketServer WebsocketServer(rpcServer,"127.0.0.1", 8888);
+  cout << "Starting websocket server: " << std::boolalpha << WebsocketServer.start() << "\n";
+  WebsocketClientConnector websocketClient("127.0.0.1", 8888);
+  WebsocketClientConnector websocketClient2("127.0.0.1", 8888);
+  std::this_thread::sleep_for(0.5s);
+  doWarehouseStuff(websocketClient);
+  //doWarehouseStuff2(websocketClient2);*/
 
   return 0;
 }

@@ -2,19 +2,12 @@
 #include "nlohmann/json.hpp"
 #include <exception>
 #include <string>
+#include "jsonrpccxx/error_code.hpp"
 
 namespace jsonrpccxx {
   typedef nlohmann::json json;
 
-  enum error_type {
-    parse_error = -32700,
-    invalid_request = -32600,
-    method_not_found = -32601,
-    invalid_params = -32602,
-    internal_error = -32603,
-    server_error,
-    invalid
-  };
+
 
   class JsonRpcException : public std::exception {
   public:
