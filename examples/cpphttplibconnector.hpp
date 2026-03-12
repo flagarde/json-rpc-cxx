@@ -1,6 +1,6 @@
 #pragma once
 
-#include <cpp-httplib/httplib.h>
+#include <httplib.h>
 #include <jsonrpccxx/iclientconnector.hpp>
 #include <jsonrpccxx/server.hpp>
 #include <string>

@@ -1,6 +1,4 @@
-#include "inmemoryconnector.hpp"
 #include "cpphttplibconnector.hpp"
-#include "websocketconnector.hpp"
 #include "warehouseapp.hpp"
 
 #include <iostream>
@@ -82,25 +80,12 @@ int main()
   rpcServer.Add("AllProducts", GetHandle(&WarehouseServer::AllProducts, app), {});
   rpcServer.Add("Notify", GetHandle(&WarehouseServer::Notify, app), {"a","b"});
 
-  /*cout << "Running in-memory example" << "\n";
-  InMemoryConnector inMemoryConnector(rpcServer);
-  doWarehouseStuff(inMemoryConnector);*/
-
   cout << "Running http example" << "\n";
   CppHttpLibServerConnector httpServer(rpcServer, 8484);
   cout << "Starting http server: " << std::boolalpha << httpServer.StartListening() << "\n";
   CppHttpLibClientConnector httpClient("localhost", 8484);
   std::this_thread::sleep_for(0.5s);
   doWarehouseStuff(httpClient);
-
-  /*cout << "Running websocket example" << "\n";
-  WebsocketServer WebsocketServer(rpcServer,"127.0.0.1", 8888);
-  cout << "Starting websocket server: " << std::boolalpha << WebsocketServer.start() << "\n";
-  WebsocketClientConnector websocketClient("127.0.0.1", 8888);
-  WebsocketClientConnector websocketClient2("127.0.0.1", 8888);
-  std::this_thread::sleep_for(0.5s);
-  doWarehouseStuff(websocketClient);
-  //doWarehouseStuff2(websocketClient2);*/
 
   return 0;
 }
